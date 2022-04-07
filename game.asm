@@ -36,17 +36,22 @@
  
 .eqv  BASE_ADDRESS  0x10008000 
  
+.data
+ human: .space 16
+ 
 .text 
  li $t0, BASE_ADDRESS # $t0 stores the base address for display 
- li $t1, 0xf2a41e   # $t1 stores the water surface blue
- li $t2, 0x847e87   # $t2 stores the platform brown 
+ li $t1, 0xdc6c1b   # $t1 stores the lava orange
+ li $t2, 0x847e87   # $t2 stores the platform grey
  li $t3, 0xffffff   # $t3 stores white 
  li $t9, 0xfbc736   # $t9 stores yellow
  li $t8, 0x99e550   # $t8 stores green
+ li $s1, 0xffff0000 # $s1 should store keypress memory location
   
  
  
-initialize: 	sw $t1, 13568($t0)   
+initialize: 	#draw lava floor
+		sw $t1, 13568($t0)   
  		sw $t1, 13572($t0)
  		sw $t1, 13576($t0)  
  		sw $t1, 13580($t0)
@@ -111,44 +116,41 @@ initialize: 	sw $t1, 13568($t0)
  		sw $t1, 13816($t0)  
  		sw $t1, 13820($t0)
  		
+ 		#draw platforms
 		li $a0, 2
 		li $a1, 52
-		
 		jal drawplatform
 		
 		li $a0, 49
 		li $a1, 52
-		
 		jal drawplatform
 		
 		li $a0, 16
 		li $a1, 40
-		
 		jal drawplatform
-		
+
 		li $a0, 32
 		li $a1, 27
-		
 		jal drawplatform
 		
 		li $a0, 11
 		li $a1, 30
-		
 		jal drawplatform
 		
+		#initiate human coordinates and position
 		li $a0, 5
 		li $a1, 51
 		li $a2, 1
-		
-		
 		jal drawperson
 		
+		
+		#initiate alien coordinates and position
 		li $a0, 52
 		li $a1, 51
 		li $a2, 0
-		
 		jal drawalien
 		
+		#place coins / stars
 		sw $t9 7216($t0)
 		sw $t9 7224($t0)
 		sw $t9 7232($t0)
@@ -162,6 +164,25 @@ initialize: 	sw $t1, 13568($t0)
 		sw $t8 6552($t0)
 		sw $t8 6560($t0)
 		
+		
+		#intialize exit condition
+		li $t4, 1
+		
+		
+ 		# INITIALIZE HUMAN STRUCT:
+ 		# X, Y, V_x, V_y
+		la $t5, human
+ 		li $t6, 5
+ 		sw $t6, 0($t5)
+ 		li $t6, 51
+ 		sw $t6, 4($t5)
+ 		li $t6, 0
+ 		sw $t6, 8($t5)
+ 		sw $t6, 12($t5)
+ 		
+ 		
+		
+		j play
 		
  		j exit
  		
@@ -276,6 +297,48 @@ steppingstone: 	add $a3, $a3, 1
  
  drawacomplete: jr $ra
  
+ 
+ 
+ #while playing, $t5 and $t6 represent human coordinates
+ #'', 
+ play: 		blez $t4, exit
+ 		lw $t6, 12($t5)
+ 		bltz $t6 falling
+ 		beq $t6, $zero, level
+ 		bgtz $t6, jumping
+ 
+ postvertical:	
+ 		lw $t6, 0($s1)
+ 		beq $t6, 1, keypress
+ 		
+ 		li $v0, 32
+ 		li $a0, 40
+ 		syscall
+ 		j play
+ 
+ falling:	
+ 	j postvertical
+ 
+ level:
+ 	j postvertical
+ 
+ jumping:
+	j postvertical
+	
+keypress:
+	lw $t6, 4($s1)
+	beq $t6, 0x61, leftinput
+	beq $t6, 0x64, rightinput
+	beq $t6, 0x77, jumpinput
+	
+ leftinput:
+ 
+ rightinput:
+ 
+ jumpinput:
+ 
+ 
+
  exit: 		li $v0, 10 # terminate the program gracefully 
  		syscall
 
