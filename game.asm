@@ -330,14 +330,33 @@ keypress:
 	beq $t6, 0x61, leftinput
 	beq $t6, 0x64, rightinput
 	beq $t6, 0x77, jumpinput
+	beq $t6, 0x70, reset
 	
  leftinput:
+ 	li $t6, -1
+ 	sw $t6, 8($t5)
+ 
  
  rightinput:
+ 	li $t6, 1
+ 	sw $t6, 8($t5)
  
  jumpinput:
- 
- 
+ 	
+ 	
+ reset:		li $t7, 0
+ 		li $s2, 16384
+ 		j resetloop
+ 		
+ resetloop:	bge $t7, $s2, initialize
+ 		add $s3, $t0, $t7	#$s3 should now contain memory address of each pixel during loop
+ 		sw $t7 0($zero)		#set pixel colour to black
+ 		add $t7, $t7, 4
+ 		j resetloop
+  
+ #on p press, reinitialize and run game.
+ 		#need to colour every pixel black, run initialize again.
+ 		
 
  exit: 		li $v0, 10 # terminate the program gracefully 
  		syscall
