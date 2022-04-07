@@ -172,11 +172,11 @@ initialize: 	#draw lava floor
  		# INITIALIZE HUMAN STRUCT:
  		# X, Y, V_x, V_y
 		la $t5, human
- 		li $t6, 5
+		add $t6, $zero, 5
  		sw $t6, 0($t5)
- 		li $t6, 51
+ 		add $t6, $zero, 51
  		sw $t6, 4($t5)
- 		li $t6, 0
+ 		add $t6, $zero, $zero
  		sw $t6, 8($t5)
  		sw $t6, 12($t5)
  		
@@ -192,17 +192,17 @@ initialize: 	#draw lava floor
  		mflo $t4		#$t4 now stores 4 * x
  		li $t7, 256
  		mult $a1, $t7
- 		mflo $t5		#$t5 now stores 256 * y
+ 		mflo $t7		#$t5 now stores 256 * y
  		add $t6, $t0, $t4
- 		add $t6, $t6, $t5	#$t6 should now contain address of starting pixel (baseaddress + 256 * y + 4 * x)
+ 		add $t6, $t6, $t7	#$t6 should now contain address of starting pixel (baseaddress + 256 * y + 4 * x)
  		add $a0, $t6, $zero
  		add $a3, $zero, $zero
  		add $t4, $zero, $zero
  		j platformloop1
  
  platformloop1: 	
- 		li $t5, 40
- 		bge $t4, $t5, nextstep
+ 		li $s3, 40
+ 		bge $t4, $s3, nextstep
  		add $t7, $t6, $t4	#$t7 should now contain address of immediate pixel to colour.
  		sw $t2, 0($t7)
  		add $t4, $t4, 4		#increment i by 4
@@ -225,9 +225,9 @@ steppingstone: 	add $a3, $a3, 1
  		mflo $t4		#$t4 now stores 4 * x
  		li $t7, 256
  		mult $a1, $t7
- 		mflo $t5		#$t5 now stores 256 * y
+ 		mflo $t7		#$t5 now stores 256 * y
  		add $t6, $t0, $t4
- 		add $t6, $t6, $t5	#$t6 should now contain address of starting pixel (baseaddress + 256 * y + 4 * x)
+ 		add $t6, $t6, $t7	#$t6 should now contain address of starting pixel (baseaddress + 256 * y + 4 * x)
  		sw $t3, 0($t6)
  		sub $t6, $t6, 256
  		sw $t3, 0($t6)
@@ -243,9 +243,9 @@ steppingstone: 	add $a3, $a3, 1
  		mflo $t4		#$t4 now stores 4 * x
  		li $t7, 256
  		mult $a1, $t7
- 		mflo $t5		#$t5 now stores 256 * y
+ 		mflo $t7		#$s6 now stores 256 * y
  		add $t6, $t0, $t4
- 		add $t6, $t6, $t5	#$t6 should now contain address of starting pixel (baseaddress + 256 * y + 4 * x)
+ 		add $t6, $t6, $t7	#$t6 should now contain address of starting pixel (baseaddress + 256 * y + 4 * x)
  		sw $t3, 0($t6)
  		sub $t6, $t6, 256
  		sw $t3, 0($t6)
@@ -265,9 +265,9 @@ steppingstone: 	add $a3, $a3, 1
  		mflo $t4		#$t4 now stores 4 * x
  		li $t7, 256
  		mult $a1, $t7
- 		mflo $t5		#$t5 now stores 256 * y
+ 		mflo $t7		#$t5 now stores 256 * y
  		add $t6, $t0, $t4
- 		add $t6, $t6, $t5	#$t6 should now contain address of starting pixel (baseaddress + 256 * y + 4 * x)
+ 		add $t6, $t6, $t7	#$t6 should now contain address of starting pixel (baseaddress + 256 * y + 4 * x)
  		sw $t3, 0($t6)
  		sub $t6, $t6, 256
  		sw $t3, 0($t6)
@@ -283,9 +283,9 @@ steppingstone: 	add $a3, $a3, 1
  		mflo $t4		#$t4 now stores 4 * x
  		li $t7, 256
  		mult $a1, $t7
- 		mflo $t5		#$t5 now stores 256 * y
+ 		mflo $t7		#$t5 now stores 256 * y
  		add $t6, $t0, $t4
- 		add $t6, $t6, $t5	#$t6 should now contain address of starting pixel (baseaddress + 256 * y + 4 * x)
+ 		add $t6, $t6, $t7	#$t6 should now contain address of starting pixel (baseaddress + 256 * y + 4 * x)
  		sw $t3, 0($t6)
  		sub $t6, $t6, 256
  		sw $t3, 0($t6)
@@ -310,34 +310,114 @@ steppingstone: 	add $a3, $a3, 1
  postvertical:	
  		lw $t6, 0($s1)
  		beq $t6, 1, keypress
+ 		li $t6, 0
+ 		sw $t6, 8($t5)
  		
+ 		
+ postkeypress:
+ 		lw $a0, 0($t5)
+ 		lw $a1, 4($t5)
+ 		j removehuman
+ 		
+ postremoval:
+ 		lw $t6, 8($t5) 	#load in V_x from $t5
+ 		lw $s3, 0($t5)	#load in x from $t5
+ 		add $s3, $s3, $t6
+ 		sw $s3, 0($t5)	#store updated x coordinate in struct
+ 		lw $a0, 0($t5)
+ 		lw $a1, 4($t5)
+ 		li $a2, 1
+ 		jal drawperson
+ 	
  		li $v0, 32
  		li $a0, 40
  		syscall
  		j play
  
  falling:	
- 	j postvertical
+ 		j postvertical
  
  level:
- 	j postvertical
+ 		j postvertical
  
  jumping:
-	j postvertical
+		j postvertical
 	
 keypress:
-	lw $t6, 4($s1)
-	beq $t6, 0x61, leftinput
-	beq $t6, 0x64, rightinput
-	beq $t6, 0x77, jumpinput
+		lw $t6, 4($s1)
+		beq $t6, 0x61, leftinput
+		beq $t6, 0x64, rightinput
+		beq $t6, 0x77, jumpinput
+		beq $t6, 0x70, reset
 	
  leftinput:
+ 		li $t6, -1
+ 		sw $t6, 8($t5)
+ 		j postkeypress
  
  rightinput:
+ 		li $t6, 1
+ 		sw $t6, 8($t5)
+ 		j postkeypress
  
  jumpinput:
+ 		lw $t6, 12($t5)	#check if vertical velocity = 0
+ 		beqz $t6, jump	#if V_y = 0, jump input should jump
+ 		j postkeypress		#otherwise, if jumping or falling should have no impact
  
- 
+ 		
+ reset:		li $t7, 0	#on p press, reinitialize and run game.
+ 				#need to colour every pixel black, run initialize again.
+ 		li $s2, 16384
+ 		j resetloop
+ 		
+ resetloop:	bge $t7, $s2, initialize
+ 		add $s3, $t0, $t7	#$s3 should now contain memory address of each pixel during loop
+ 		sw $zero 0($s3)		#set pixel colour to black
+ 		add $t7, $t7, 4
+ 		j resetloop
+  
+ removehuman: 				#given coordinates of human in $t5 struct, remove human (replace pixels with black, redraw platforms)	
+ 		li $t7, 4
+ 		mult $a0, $t7
+ 		mflo $t4		#$t4 now stores 4 * x
+ 		li $t7, 256
+ 		mult $a1, $t7
+ 		mflo $t7		#$t5 now stores 256 * y
+ 		add $t6, $t0, $t4
+ 		add $t6, $t6, $t7	#$t6 should now contain address of starting pixel (baseaddress + 256 * y + 4 * x)
+ 		sw $zero, 0($t6)
+ 		sub $t6, $t6, 256
+ 		sw $zero, 0($t6)
+ 		sub $t6, $t6, 4
+ 		sw $zero, 0($t6)
+ 		sub $t6, $t6, 252
+ 		sw $zero, 0($t6)
+ 		
+ 		#redraw platforms
+ 		li $a0, 2
+		li $a1, 52
+		jal drawplatform
+		
+		li $a0, 49
+		li $a1, 52
+		jal drawplatform
+		
+		li $a0, 16
+		li $a1, 40
+		jal drawplatform
+
+		li $a0, 32
+		li $a1, 27
+		jal drawplatform
+		
+		li $a0, 11
+		li $a1, 30
+		jal drawplatform
+
+ 		j postremoval
+
+jump:
 
  exit: 		li $v0, 10 # terminate the program gracefully 
  		syscall
