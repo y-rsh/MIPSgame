@@ -246,6 +246,8 @@ steppingstone: 	add $a3, $a3, 1
  		mflo $t7		#$s6 now stores 256 * y
  		add $t6, $t0, $t4
  		add $t6, $t6, $t7	#$t6 should now contain address of starting pixel (baseaddress + 256 * y + 4 * x)
+ 		#lw $t4, 0($t6)
+ 		#beq $t4, $t3, gameover
  		sw $t3, 0($t6)
  		sub $t6, $t6, 256
  		sw $t3, 0($t6)
@@ -324,7 +326,11 @@ steppingstone: 	add $a3, $a3, 1
  		lw $s3, 0($t5)	#load in x from $t5
  		add $s3, $s3, $t6
  		sw $s3, 0($t5)	#store updated x coordinate in struct
- 		lw $a0, 0($t5)
+ 		
+ 		# want to check: if pixel being moved to (in struct 0($t5)) is white, game over\
+ 		
+ 		lw $a0, 0($t5)	
+ 		beq $a0, 52, gameover
  		lw $a1, 4($t5)
  		li $a2, 1
  		jal drawperson
@@ -419,6 +425,68 @@ keypress:
 
 jump:
 
+gameover: 	li $t7, 0	#on p press, reinitialize and run game.
+ 				#need to colour every pixel black, run initialize again.
+ 		li $s2, 16384
+ 		j resetloop1
+ 		
+ resetloop1:	bge $t7, $s2, enddisplay
+ 		add $s3, $t0, $t7	#$s3 should now contain memory address of each pixel during loop
+ 		sw $zero 0($s3)		#set pixel colour to black
+ 		add $t7, $t7, 4
+ 		j resetloop1
+
+enddisplay: 	sw $t3, 6520($t0)
+		sw $t3, 6524($t0)
+		sw $t3, 6528($t0)
+		sw $t3, 6532($t0)
+		sw $t3, 6536($t0)
+		sw $t3, 6772($t0)
+		sw $t3, 6776($t0)
+		sw $t3, 6780($t0)
+		sw $t3, 6784($t0)
+		sw $t3, 6788($t0)
+		sw $t3, 6792($t0)
+		sw $t3, 6796($t0)
+		sw $t3, 7024($t0)
+		sw $t3, 7028($t0)
+		sw $t3, 7040($t0)
+		sw $t3, 7052($t0)
+		sw $t3, 7056($t0)
+		sw $t3, 7280($t0)
+		sw $t3, 7296($t0)
+		sw $t3, 7312($t0)
+		sw $t3, 7536($t0)
+		sw $t3, 7552($t0)
+		sw $t3, 7568($t0)
+		sw $t3, 7792($t0)
+		sw $t3, 7804($t0)
+		sw $t3, 7808($t0)
+		sw $t3, 7812($t0)
+		sw $t3, 7824($t0)
+		sw $t3, 8048($t0)
+		sw $t3, 8052($t0)
+		sw $t3, 8056($t0)
+		sw $t3, 8060($t0)
+		sw $t3, 8068($t0)
+		sw $t3, 8072($t0)
+		sw $t3, 8076($t0)
+		sw $t3, 8080($t0)
+		sw $t3, 8308($t0)
+		sw $t3, 8312($t0)
+		sw $t3, 8316($t0)
+		sw $t3, 8320($t0)
+		sw $t3, 8324($t0)
+		sw $t3, 8328($t0)
+		sw $t3, 8332($t0)
+		sw $t3, 8568($t0)
+		sw $t3, 8824($t0)
+		sw $t3, 8832($t0)
+		sw $t3, 8576($t0)
+		sw $t3, 8584($t0)
+		sw $t3, 8840($t0)
+		
+		
  exit: 		li $v0, 10 # terminate the program gracefully 
  		syscall
 
